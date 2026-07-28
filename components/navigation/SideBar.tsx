@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 
 import {
   Sidebar,
@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 // This is sample data.
 const data = {
@@ -143,9 +143,11 @@ const data = {
       ],
     },
   ],
-}
+};
 
-export function SidebarHome({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function SidebarHome({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -160,7 +162,10 @@ export function SidebarHome({ ...props }: React.ComponentProps<typeof Sidebar>) 
               <SidebarMenu>
                 {item.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={item.isActive}>
+                    <SidebarMenuButton
+                      isActive={item.isActive}
+                      render={<a href={item.url}>{item.title}</a>}
+                    >
                       <a href={item.url}>{item.title}</a>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -172,5 +177,5 @@ export function SidebarHome({ ...props }: React.ComponentProps<typeof Sidebar>) 
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
