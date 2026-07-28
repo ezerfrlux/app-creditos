@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrediMax - Sistema de Control de Préstamos Semanales</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f4f6f9; color: #333; }
+        
+        /* Header */
+        header { background: #1b365d; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2c4d75; }
+        .logo-container { display: flex; align-items: center; gap: 15px; }
+        .company-logo { max-height: 55px; background: #fff; padding: 4px; border-radius: 4px; }
+        .app-title { font-size: 20px; font-weight: bold; color: #ffffff; }
+        .user-info { display: flex; align-items: center; gap: 15px; font-size: 14px; }
+        .logout-btn { background: #d9534f; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .logout-btn:hover { background: #c9302c; }
+
+        /* Navigation Menu */
+        nav { background: #2c4d75; color: white; padding: 0 20px; }
+        nav ul { list-style: none; display: flex; gap: 5px; }
+        nav a { color: #e1e8f0; text-decoration: none; padding: 12px 18px; display: block; font-weight: 500; font-size: 14px; transition: background 0.2s; }
+        nav a:hover, nav a.active { background: #1b365d; color: #fff; border-bottom: 3px solid #00a8cc; }
+
+        /* Main Container */
+        .container { max-width: 1280px; margin: 20px auto; padding: 0 15px; }
+        .card { background: white; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 20px; }
+        .card-title { font-size: 18px; font-weight: bold; color: #1b365d; border-bottom: 2px solid #eef2f5; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Form Styles */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #495057; margin-bottom: 5px; }
+        .form-group input, .form-group select { padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #1b365d; box-shadow: 0 0 0 2px rgba(27,54,93,0.15); }
+        .btn { padding: 9px 16px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: #1b365d; color: white; }
+        .btn-primary:hover { background: #142845; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 10px; }
+        table th { background: #f1f4f8; color: #1b365d; font-weight: 700; text-align: left; padding: 10px 12px; border-bottom: 2px solid #dee2e6; }
+        table td { padding: 10px 12px; border-bottom: 1px solid #e9ecef; vertical-align: middle; }
+        table tr:hover { background-color: #f8f9fa; }
+        .badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge-active { background: #d4edda; color: #155724; }
+        .badge-overdue { background: #f8d7da; color: #721c24; }
+
+        /* Receipt Preview Modal / Box */
+        .receipt-container { background: white; border: 2px dashed #1b365d; border-radius: 8px; padding: 25px; max-width: 550px; margin: 20px auto; font-size: 14px; }
+        .receipt-header { text-align: center; border-bottom: 2px solid #1b365d; padding-bottom: 12px; margin-bottom: 15px; }
+        .receipt-header img { max-height: 60px; margin-bottom: 8px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .receipt-row strong { color: #1b365d; }
+        .receipt-signatures { display: flex; justify-content: space-between; margin-top: 40px; text-align: center; }
+        .sig-line { width: 200px; border-top: 1px solid #000; padding-top: 5px; font-size: 12px; }
+
+        /* Sections Visibility */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        @media print {
+            body * { visibility: hidden; }
+            .receipt-container, .receipt-container * { visibility: visible; }
+            .receipt-container { position: absolute; left: 0; top: 0; width: 100%; border: none; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="no-print">
+        <div class="logo-container">
+            <img id="headerLogo" src="https://via.placeholder.com/150x50?text=LOGO+EMPRESA" alt="Logo Empresa" class="company-logo">
+            <div>
+                <div class="app-title">CrediMax - Control de Créditos Semanales</div>
+                <div style="font-size: 12px; color: #c0d1e3;" id="companyNameDisplay">Sistema Oficial de Administración</div>
+            </div>
+        </div>
+        <div class="user-info">
+            <span>Usuario: <strong id="currentUserDisplay">admin_principal</strong> (<span id="userRoleDisplay">Administrador</span>)</span>
+            <button class="logout-btn" onclick="alert('Sesión finalizada.')">Salir</button>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="no-print">
+        <ul>
+            <li><a href="#" class="nav-link active" onclick="showSection('cartera', this)">Cartera de Créditos</a></li>
+            <li><a href="#" class="nav-link" onclick="showSection('nuevoCliente', this)">Nuevo Crédito</a></li>
+            <li><a href="#" class="nav-link" onclick="showSection('pagos', this)">Aplicar Pago</a></li>
+            <li><a href="#" class="nav-link" onclick="showSection('vencidos', this)">Créditos Vencidos</a></li>
+            <li><a href="#" class="nav-link" onclick="showSection('usuarios', this)">Usuarios / Cobradores</a></li>
+            <li><a href="#" class="nav-link" onclick="showSection('configuracion', this)">Configuración & Logo</a></li>
+        </ul>
+    </nav>
+
+    <div class="container no-print">
+
+        <!-- 1. CARTERA DE CRÉDITOS -->
+        <div id="cartera" class="section active">
+            <div class="card">
+                <div class="card-title">
+                    <span>Reporte de Cartera Activa</span>
+                    <button class="btn btn-primary" onclick="showSection('nuevoCliente', document.querySelectorAll('.nav-link')[1])">+ Nuevo Préstamo</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Crédito</th>
+                            <th>Cliente</th>
+                            <th>Zona / Ruta</th>
+                            <th>F. Desembolso</th>
+                            <th>Monto ($)</th>
+                            <th>Total Pagar ($)</th>
+                            <th>Cuota Semanal</th>
+                            <th>Saldo Pendiente</th>
+                            <th>Próximo Pago</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="carteraTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. NUEVO CRÉDITO -->
+        <div id="nuevoCliente" class="section">
+            <div class="card">
+                <div class="card-title">Registrar Nuevo Préstamo Semanal</div>
+                <form id="loanForm" onsubmit="registerLoan(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre del Cliente</label>
+                            <input type="text" id="clientName" required placeholder="Ej: Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="text" id="clientPhone" required placeholder="Ej: 8888-9999">
+                        </div>
+                        <div class="form-group">
+                            <label>Zona / Ruta</label>
+                            <select id="clientZone">
+                                <option>Ruta Norte</option>
+                                <option>Ruta Centro</option>
+                                <option>Ruta Sur</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Monto Total a Pagar ($)</label>
+                            <input type="number" id="totalLoanAmount" step="1" required placeholder="Ej: 1100" onchange="calculateInstallment()">
+                        </div>
+                        <div class="form-group">
+                            <label>Número de Cuotas Semanales</label>
+                            <input type="number" id="weeksTerm" value="10" min="1" required onchange="calculateInstallment()">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Desembolso</label>
+                            <input type="date" id="disbursementDate" required onchange="calculateInstallment()">
+                        </div>
+                        <div class="form-group">
+                            <label>Cobrador Asignado</label>
+                            <select id="assignedCollector">
+                                <option>pedro_cobrador</option>
+                                <option>maria_cobrador</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 15px; border-left: 4px solid #1b365d;">
+                        <strong>Resumen del Cálculo:</strong>
+                        <span id="calcSummary" style="margin-left: 10px; color: #1b365d; font-weight: 600;">Ingrese monto total y cuotas para calcular...</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Guardar y Desembolsar Préstamo</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. APLICAR PAGO Y GENERAR RECIBO -->
+        <div id="pagos" class="section">
+            <div class="card">
+                <div class="card-title">Aplicar Pago de Cuota Semanal</div>
+                <form id="paymentForm" onsubmit="processPayment(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Seleccionar Cliente / Crédito</label>
+                            <select id="paymentClientSelect" onchange="loadClientPaymentData()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Pago</label>
+                            <input type="date" id="paymentDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Monto a Abonar ($)</label>
+                            <input type="number" id="paymentAmount" step="0.01" required placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Cobrador / Usuario que Recibe</label>
+                            <select id="paymentUser">
+                                <option>pedro_cobrador</option>
+                                <option>admin_principal</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registrar Pago y Generar Recibo</button>
+                </form>
+            </div>
+
+            <!-- Receipt Display Box -->
+            <div id="receiptBox" style="display:none;">
+                <div class="receipt-container" id="printableReceipt">
+                    <div class="receipt-header">
+                        <img id="receiptLogo" src="https://via.placeholder.com/150x50?text=LOGO+EMPRESA" alt="Logo">
+                        <h2 id="receiptCompanyName" style="color: #1b365d; font-size: 18px;">MI EMPRESA DE PRESTAMOS</h2>
+                        <p style="font-size: 12px; color: #666;">Comprobante Oficial de Pago Semanal</p>
+                    </div>
+
+                    <div class="receipt-row">
+                        <span><strong>N° Recibo:</strong> <span id="recNo">REC-001</span></span>
+                        <span><strong>Fecha:</strong> <span id="recDate">2026-07-22</span></span>
+                    </div>
+                    <div class="receipt-row">
+                        <span><strong>Cliente:</strong> <span id="recClient">Juan Pérez</span></span>
+                        <span><strong>Cobrador:</strong> <span id="recUser">pedro_cobrador</span></span>
+                    </div>
+
+                    <hr style="margin: 12px 0; border: 0; border-top: 1px solid #ddd;">
+
+                    <div class="receipt-row" style="font-size: 16px;">
+                        <span><strong>Monto Abonado:</strong></span>
+                        <span style="color: #28a745; font-weight: bold;" id="recAmount">$110.00</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Saldo Anterior:</span>
+                        <span id="recPrevBal">$1,100.00</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Nuevo Saldo Pendiente:</span>
+                        <span id="recNewBal" style="font-weight: bold; color: #d9534f;">$990.00</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Próximo Pago Semanal:</span>
+                        <span id="recNextDate" style="font-weight: bold;">2026-07-29</span>
+                    </div>
+
+                    <div class="receipt-signatures">
+                        <div>
+                            <div class="sig-line" id="sigUser">Firma Cobrador</div>
+                        </div>
+                        <div>
+                            <div class="sig-line">Firma Cliente</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <button class="btn btn-success" onclick="window.print()">🖨️ Imprimir / Guardar Recibo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. CRÉDITOS VENCIDOS -->
+        <div id="vencidos" class="section">
+            <div class="card">
+                <div class="card-title">Reporte de Créditos Vencidos / Mora</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Zona</th>
+                            <th>N° Préstamo</th>
+                            <th>Cliente</th>
+                            <th>Saldo Pendiente</th>
+                            <th>Fecha Vencimiento</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overdueTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 5. USUARIOS Y ROLES -->
+        <div id="usuarios" class="section">
+            <div class="card">
+                <div class="card-title">Gestión de Usuarios y Cobradores</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre Completo</th>
+                            <th>Usuario</th>
+                            <th>Rol / Permisos</th>
+                            <th>Zona Asignada</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>USR-01</td>
+                            <td>Administrador General</td>
+                            <td>admin_principal</td>
+                            <td>Administrador</td>
+                            <td>Todas</td>
+                            <td><span class="badge badge-active">Activo</span></td>
+                        </tr>
+                        <tr>
+                            <td>USR-02</td>
+                            <td>Pedro Gómez</td>
+                            <td>pedro_cobrador</td>
+                            <td>Cobrador / Ruta</td>
+                            <td>Ruta Norte</td>
+                            <td><span class="badge badge-active">Activo</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 6. CONFIGURACIÓN Y LOGO -->
+        <div id="configuracion" class="section">
+            <div class="card">
+                <div class="card-title">Configuración de la Empresa e Imagen de Recibo</div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nombre de la Empresa</label>
+                        <input type="text" id="companyNameInput" value="MI EMPRESA DE PRESTAMOS">
+                    </div>
+                    <div class="form-group">
+                        <label>Subir Imagen de Logo para Recibo</label>
+                        <input type="file" id="logoUpload" accept="image/*" onchange="updateCompanyLogo(event)">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()">Guardar Cambios</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let loans = [
+            { id: "CRE-101", client: "Carlos Mendoza", phone: "8899-1122", zone: "Ruta Norte", disbursement: "2026-07-01", totalToPay: 550, weeks: 10, weeklyPayment: 55, balance: 445, nextDue: "2026-07-22", status: "Al Día" },
+            { id: "CRE-102", client: "María Gutiérrez", phone: "8765-4321", zone: "Ruta Centro", disbursement: "2026-06-15", totalToPay: 330, weeks: 8, weeklyPayment: 41.25, balance: 165, nextDue: "2026-07-15", status: "Vencido" }
+        ];
+
+        let companyLogoUrl = "https://via.placeholder.com/150x50?text=LOGO+EMPRESA";
+
+        function showSection(sectionId, element) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            if(element) element.classList.add('active');
+            if(sectionId === 'cartera') renderCartera();
+            if(sectionId === 'pagos') populatePaymentClients();
+            if(sectionId === 'vencidos') renderOverdue();
+        }
+
+        function calculateInstallment() {
+            const totalToPay = parseFloat(document.getElementById('totalLoanAmount').value) || 0;
+            const weeks = parseInt(document.getElementById('weeksTerm').value) || 1;
+            const date = document.getElementById('disbursementDate').value;
+
+            const weekly = totalToPay / weeks;
+
+            if(totalToPay > 0 && date) {
+                document.getElementById('calcSummary').innerHTML = `Monto Total: <strong>$${totalToPay.toFixed(2)}</strong> ÷ ${weeks} cuotas = <strong>$${weekly.toFixed(2)}</strong> semanal.`;
+            }
+        }
+
+        function registerLoan(e) {
+            e.preventDefault();
+            const name = document.getElementById('clientName').value;
+            const phone = document.getElementById('clientPhone').value;
+            const zone = document.getElementById('clientZone').value;
+            const totalToPay = parseFloat(document.getElementById('totalLoanAmount').value);
+            const weeks = parseInt(document.getElementById('weeksTerm').value);
+            const disbursement = document.getElementById('disbursementDate').value;
+
+            const weeklyPayment = totalToPay / weeks;
+            
+            let d = new Date(disbursement);
+            d.setDate(d.getDate() + 7);
+            const nextDue = d.toISOString().split('T')[0];
+
+            const newLoan = {
+                id: "CRE-" + Math.floor(100 + Math.random() * 900),
+                client: name, phone: phone, zone: zone, disbursement: disbursement,
+                totalToPay: totalToPay, weeks: weeks, weeklyPayment: weeklyPayment,
+                balance: totalToPay, nextDue: nextDue, status: "Al Día"
+            };
+
+            loans.push(newLoan);
+            alert("¡Préstamo registrado exitosamente!");
+            document.getElementById('loanForm').reset();
+            showSection('cartera', document.querySelectorAll('.nav-link')[0]);
+        }
+
+        function renderCartera() {
+            const tbody = document.getElementById('carteraTableBody');
+            tbody.innerHTML = "";
+            loans.forEach(l => {
+                const badgeClass = l.status === "Vencido" ? "badge-overdue" : "badge-active";
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${l.id}</strong></td>
+                        <td>${l.client}</td>
+                        <td>${l.zone}</td>
+                        <td>${l.disbursement}</td>
+                        <td>$${l.totalToPay.toFixed(2)}</td>
+                        <td>$${l.weeklyPayment.toFixed(2)}</td>
+                        <td style="color:#d9534f; font-weight:bold;">$${l.balance.toFixed(2)}</td>
+                        <td>${l.nextDue}</td>
+                        <td><span class="badge ${badgeClass}">${l.status}</span></td>
+                        <td><button class="btn btn-primary" style="padding: 3px 8px; font-size:12px;" onclick="goToPayment('${l.id}')">Abonar</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function populatePaymentClients() {
+            const select = document.getElementById('paymentClientSelect');
+            select.innerHTML = '<option value="">-- Seleccionar Préstamo --</option>';
+            loans.forEach(l => {
+                select.innerHTML += `<option value="${l.id}">${l.client} - ${l.id} (Saldo: $${l.balance.toFixed(2)})</option>`;
+            });
+            document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        function goToPayment(loanId) {
+            showSection('pagos', document.querySelectorAll('.nav-link')[2]);
+            setTimeout(() => {
+                document.getElementById('paymentClientSelect').value = loanId;
+                loadClientPaymentData();
+            }, 100);
+        }
+
+        function loadClientPaymentData() {
+            const id = document.getElementById('paymentClientSelect').value;
+            const loan = loans.find(l => l.id === id);
+            if(loan) {
+                document.getElementById('paymentAmount').value = loan.weeklyPayment.toFixed(2);
+            }
+        }
+
+        function processPayment(e) {
+            e.preventDefault();
+            const id = document.getElementById('paymentClientSelect').value;
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const date = document.getElementById('paymentDate').value;
+            const user = document.getElementById('paymentUser').value;
+
+            const loan = loans.find(l => l.id === id);
+            if(!loan) return alert("Seleccione un cliente válido");
+
+            const prevBal = loan.balance;
+            loan.balance = Math.max(0, loan.balance - amount);
+            
+            let nextD = new Date(date);
+            nextD.setDate(nextD.getDate() + 7);
+            loan.nextDue = nextD.toISOString().split('T')[0];
+
+            document.getElementById('recNo').innerText = "REC-" + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('recDate').innerText = date;
+            document.getElementById('recClient').innerText = loan.client;
+            document.getElementById('recUser').innerText = user;
+            document.getElementById('recAmount').innerText = "$" + amount.toFixed(2);
+            document.getElementById('recPrevBal').innerText = "$" + prevBal.toFixed(2);
+            document.getElementById('recNewBal').innerText = "$" + loan.balance.toFixed(2);
+            document.getElementById('recNextDate').innerText = loan.nextDue;
+            document.getElementById('sigUser').innerText = "Firma " + user;
+
+            document.getElementById('receiptBox').style.display = "block";
+        }
+
+        function renderOverdue() {
+            const tbody = document.getElementById('overdueTableBody');
+            tbody.innerHTML = "";
+            const overdueLoans = loans.filter(l => l.status === "Vencido" || new Date(l.nextDue) < new Date('2026-07-22'));
+            overdueLoans.forEach(l => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${l.zone}</td>
+                        <td>${l.id}</td>
+                        <td>${l.client}</td>
+                        <td style="color:#d9534f; font-weight:bold;">$${l.balance.toFixed(2)}</td>
+                        <td>${l.nextDue}</td>
+                        <td><span class="badge badge-overdue">Vencido</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updateCompanyLogo(e) {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    companyLogoUrl = event.target.result;
+                    document.getElementById('headerLogo').src = companyLogoUrl;
+                    document.getElementById('receiptLogo').src = companyLogoUrl;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveSettings() {
+            const name = document.getElementById('companyNameInput').value;
+            document.getElementById('companyNameDisplay').innerText = name;
+            document.getElementById('receiptCompanyName').innerText = name;
+            alert("Configuración guardada correctamente.");
+        }
+
+        document.getElementById('disbursementDate').value = new Date().toISOString().split('T')[0];
+        renderCartera();
+    </script>
+</body>
+</html>
