@@ -73,8 +73,8 @@ export function SidebarHome({
 }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-5 dark:border-sidebar-border">
-        <h1 className="font-heading text-lg font-semibold tracking-tight text-sidebar-primary dark:text-sidebar-primary">
+      <SidebarHeader className="flex items-center justify-center px-4 py-5">
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-sidebar-primary">
           App Creditos
         </h1>
       </SidebarHeader>
