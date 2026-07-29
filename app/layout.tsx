@@ -46,7 +46,9 @@ export default function RootLayout({
           <SidebarHome />
           <main>
             <SidebarTrigger />
-            {children}
+            <div className="m-2 rounded-2xl overflow-hidden">
+              {children}
+            </div>
           </main>
         </SidebarProvider>
       </body>

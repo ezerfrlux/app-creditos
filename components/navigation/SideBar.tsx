@@ -10,135 +10,58 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-// This is sample data.
-const data = {
-  versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
+import {
+  IconCreditCard,
+  IconUserPlus,
+  IconCoins,
+  IconAlertTriangle,
+  IconUsers,
+  IconSettings,
+} from "@tabler/icons-react";
+
+export const data = {
   navMain: [
     {
-      title: "Getting Started",
-      url: "#",
+      title: "Créditos",
       items: [
         {
-          title: "Installation",
-          url: "#",
+          title: "Cartera de Créditos",
+          url: "/creditos",
+          icon: IconCreditCard,
         },
         {
-          title: "Project Structure",
-          url: "#",
+          title: "Nuevo Crédito",
+          url: "/creditos/nuevo",
+          icon: IconUserPlus,
+        },
+        {
+          title: "Aplicar Pago",
+          url: "/pagos",
+          icon: IconCoins,
+        },
+        {
+          title: "Créditos Vencidos",
+          url: "/creditos/vencidos",
+          icon: IconAlertTriangle,
         },
       ],
     },
     {
-      title: "Build Your Application",
-      url: "#",
+      title: "Administración",
       items: [
         {
-          title: "Routing",
-          url: "#",
+          title: "Usuarios y Cobradores",
+          url: "/usuarios",
+          icon: IconUsers,
         },
         {
-          title: "Data Fetching",
-          url: "#",
-          isActive: true,
-        },
-        {
-          title: "Rendering",
-          url: "#",
-        },
-        {
-          title: "Caching",
-          url: "#",
-        },
-        {
-          title: "Styling",
-          url: "#",
-        },
-        {
-          title: "Optimizing",
-          url: "#",
-        },
-        {
-          title: "Configuring",
-          url: "#",
-        },
-        {
-          title: "Testing",
-          url: "#",
-        },
-        {
-          title: "Authentication",
-          url: "#",
-        },
-        {
-          title: "Deploying",
-          url: "#",
-        },
-        {
-          title: "Upgrading",
-          url: "#",
-        },
-        {
-          title: "Examples",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "API Reference",
-      url: "#",
-      items: [
-        {
-          title: "Components",
-          url: "#",
-        },
-        {
-          title: "File Conventions",
-          url: "#",
-        },
-        {
-          title: "Functions",
-          url: "#",
-        },
-        {
-          title: "next.config.js Options",
-          url: "#",
-        },
-        {
-          title: "CLI",
-          url: "#",
-        },
-        {
-          title: "Edge Runtime",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Architecture",
-      url: "#",
-      items: [
-        {
-          title: "Accessibility",
-          url: "#",
-        },
-        {
-          title: "Fast Refresh",
-          url: "#",
-        },
-        {
-          title: "Next.js Compiler",
-          url: "#",
-        },
-        {
-          title: "Supported Browsers",
-          url: "#",
-        },
-        {
-          title: "Turbopack",
-          url: "#",
+          title: "Configuración",
+          url: "/configuracion",
+          icon: IconSettings,
         },
       ],
     },
@@ -150,22 +73,28 @@ export function SidebarHome({
 }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
-      <SidebarHeader>
-        <h1>App Creditos</h1>
+      <SidebarHeader className="border-b border-sidebar-border px-4 py-5 dark:border-sidebar-border">
+        <h1 className="font-heading text-lg font-semibold tracking-tight text-sidebar-primary dark:text-sidebar-primary">
+          App Creditos
+        </h1>
       </SidebarHeader>
+      <SidebarSeparator />
       <SidebarContent>
         {/* We create a SidebarGroup for each parent. */}
         {data.navMain.map((item) => (
           <SidebarGroup key={item.title}>
-            <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-sidebar-primary dark:text-sidebar-primary">
+              {item.title}
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {item.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      isActive={item.isActive}
                       render={<a href={item.url} />}
+                      className="data-[active]:bg-sidebar-primary data-[active]:text-sidebar-primary-foreground dark:data-[active]:bg-sidebar-primary dark:data-[active]:text-sidebar-primary-foreground"
                     >
+                      <item.icon data-icon="inline-start" />
                       {item.title}
                     </SidebarMenuButton>
                   </SidebarMenuItem>

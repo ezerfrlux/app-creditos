@@ -1,8 +1,4 @@
-
+import { redirect, RedirectType } from "next/navigation";
 export default function Home() {
-  return (
-    <div className="flex justify-center">
-
-    </div>
-  );
+  return redirect('/dashboard', RedirectType.replace)
 }
