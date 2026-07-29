@@ -164,9 +164,9 @@ export function SidebarHome({
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       isActive={item.isActive}
-                      render={<a href={item.url}>{item.title}</a>}
+                      render={<a href={item.url} />}
                     >
-                      <a href={item.url}>{item.title}</a>
+                      {item.title}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
